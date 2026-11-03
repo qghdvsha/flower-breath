@@ -1,0 +1,90 @@
+[
+  {
+    "id": 1,
+    "name": "月下樱",
+    "closed": 0.042,
+    "open": 2.5,
+    "color": "#b9dfff",
+    "frames": 60,
+    "width": 1280,
+    "height": 720,
+    "duration": 8.062993,
+    "fps": 24,
+    "watermarkRepair": {
+      "sourceTime": 0.001,
+      "rect": [
+        1045,
+        632,
+        227,
+        74
+      ],
+      "method": "clean first-frame patch, feathered; not recovered hidden detail"
+    }
+  },
+  {
+    "id": 2,
+    "name": "晚风木槿",
+    "closed": 2.25,
+    "open": 0.042,
+    "color": "#f2bed4",
+    "frames": 54,
+    "width": 1280,
+    "height": 720,
+    "duration": 8.062993,
+    "fps": 24,
+    "watermarkRepair": {
+      "sourceTime": 0.001,
+      "rect": [
+        1045,
+        632,
+        227,
+        74
+      ],
+      "method": "clean first-frame patch, feathered; not recovered hidden detail"
+    }
+  },
+  {
+    "id": 3,
+    "name": "蓝夜微光",
+    "closed": 2.25,
+    "open": 0.042,
+    "color": "#5ea7ff",
+    "frames": 54,
+    "width": 1280,
+    "height": 720,
+    "duration": 8.062993,
+    "fps": 24,
+    "watermarkRepair": {
+      "sourceTime": 0.001,
+      "rect": [
+        1045,
+        632,
+        227,
+        74
+      ],
+      "method": "clean first-frame patch, feathered; not recovered hidden detail"
+    }
+  },
+  {
+    "id": 4,
+    "name": "风铃花语",
+    "closed": 0.042,
+    "open": 2.7,
+    "color": "#f1c4d1",
+    "frames": 65,
+    "width": 1280,
+    "height": 720,
+    "duration": 8.062993,
+    "fps": 24,
+    "watermarkRepair": {
+      "sourceTime": 0.001,
+      "rect": [
+        1045,
+        632,
+        227,
+        74
+      ],
+      "method": "clean first-frame patch, feathered; not recovered hidden detail"
+    }
+  }
+]

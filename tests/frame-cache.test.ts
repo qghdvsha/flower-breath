@@ -1,0 +1,5 @@
+import {test} from 'node:test';import assert from 'node:assert/strict';import {FrameCache,type Flower} from '../src/breath/cache.ts';
+const flower:Flower={id:1,name:'test',frames:10,width:1280,height:720,closed:0,open:1,color:'#fff'};
+function seeded(){const cache=new FrameCache();const low={close(){}} as ImageBitmap,high={close(){}} as ImageBitmap;const entries=(cache as unknown as {entries:Map<string,unknown>}).entries;entries.set('1/2',{image:low,used:0});entries.set('1/6',{image:high,used:1});return {cache,low,high};}
+test('GPU interpolation uses cached frames on both sides of a missing frame',()=>{const {cache,low,high}=seeded();const p=cache.bracket(flower,4)!;assert.equal(p.lower,low);assert.equal(p.upper,high);assert.equal(p.low,2);assert.equal(p.high,6);cache.dispose();});
+test('exact, boundary and absent-species samples do not blend unrelated frames',()=>{const {cache,low,high}=seeded();assert.equal(cache.bracket(flower,2)?.upper,low);assert.equal(cache.bracket(flower,0)?.lower,low);assert.equal(cache.bracket(flower,9)?.lower,high);assert.equal(cache.bracket({...flower,id:2},4),undefined);cache.dispose();});

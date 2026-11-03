@@ -1,0 +1,6 @@
+<!doctype html><html lang="zh-CN"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>灵羽 · 素材核对</title>
+<style>body{background:#070910;color:#dcddeb;font:15px/1.7 system-ui;margin:32px auto;max-width:1200px;padding:20px}h1{font-size:24px}section{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:22px}figure{margin:0;background:#0c0f19;padding:14px}img{width:100%;height:400px;object-fit:contain;background:black}a{color:#bbd9ed}small{color:#aaa}code{word-break:break-all}</style>
+<h1>实际使用的原图与允许的补充区域</h1><p>三张 JPEG 是原样复制，SHA256 校验通过；补图单独存放。主应用采用原图网格动画，不把生成图片的整个主体替换进去。</p>
+<section><figure><img src="originals/butterfly.jpg"><figcaption>蝴蝶原图：主体完整。使用原有两侧翅膀与身体，无镜像补齐。</figcaption></figure><figure><img src="originals/flower.jpg"><figcaption>花朵原图：两侧和上沿流光存在裁切。中心与主体花瓣保留原图。</figcaption></figure><figure><img src="originals/tree.jpg"><figcaption>树木原图：顶部树冠与底部树根不完整。原有枝干保留；舞台地面亮带在背景分离时抑制。</figcaption></figure></section>
+<h1>单独保存的扩展素材</h1><section><figure><img src="derived/flower-periphery.png"><figcaption>花朵补图：仅外围采样，原图中心覆盖其上。<small>这是补绘素材，不能称为全部原样保留。</small></figcaption></figure><figure><img src="derived/tree-roots.png"><figcaption>树根补图：只使用下方根部，原图枝干与树冠从原 JPEG 读取。<small>上半部生成的树不会用于替代原树。</small></figcaption></figure></section><p><a href="/">返回体验</a></p>
+</html>

@@ -1,0 +1,157 @@
+[
+  {
+    "id": 1,
+    "file": "411B5D3D-EAC3-40AE-A92D-F991A319E696.MOV",
+    "name": "月下樱",
+    "closed": 0.042,
+    "open": 2.5,
+    "color": "#b9dfff",
+    "original": "/videos/hd/originals/411B5D3D-EAC3-40AE-A92D-F991A319E696.MOV",
+    "width": 1280,
+    "height": 720,
+    "duration": 8.063333,
+    "tracks": [
+      {
+        "timescale": 600,
+        "duration": 8.125,
+        "handler": "vide",
+        "codec": "avc1",
+        "samples": 193,
+        "fps": 23.753846153846155
+      },
+      {
+        "timescale": 44100,
+        "duration": 8.110453514739229,
+        "handler": "soun",
+        "codec": "mp4a",
+        "samples": 350,
+        "fps": 43.15418359330222
+      }
+    ],
+    "sha256": "20f4b2933b704e15fe4cd130ef5569f26dd3ab5c89882aee082418a8fa052d48"
+  },
+  {
+    "id": 2,
+    "file": "7E59D0EA-0F13-495C-872A-92FA766DCE8F.MOV",
+    "name": "晚风木槿",
+    "closed": 2.25,
+    "open": 0.042,
+    "color": "#f2bed4",
+    "original": "/videos/hd/originals/7E59D0EA-0F13-495C-872A-92FA766DCE8F.MOV",
+    "width": 1280,
+    "height": 720,
+    "duration": 8.063333,
+    "tracks": [
+      {
+        "timescale": 600,
+        "duration": 8.125,
+        "handler": "vide",
+        "codec": "avc1",
+        "samples": 193,
+        "fps": 23.753846153846155
+      },
+      {
+        "timescale": 44100,
+        "duration": 8.110453514739229,
+        "handler": "soun",
+        "codec": "mp4a",
+        "samples": 350,
+        "fps": 43.15418359330222
+      }
+    ],
+    "sha256": "2e6866a4d15157f9c53816249f81db6b6b191253e307acd736525490b1b2070c"
+  },
+  {
+    "id": 3,
+    "file": "4068CAC9-2AB8-4126-97D2-428C02E7920E.MOV",
+    "name": "晴空樱舞",
+    "closed": 4.5,
+    "open": 1.9,
+    "color": "#ffcfdb",
+    "original": "/videos/hd/originals/4068CAC9-2AB8-4126-97D2-428C02E7920E.MOV",
+    "width": 1280,
+    "height": 720,
+    "duration": 15.071678,
+    "tracks": [
+      {
+        "timescale": 44100,
+        "duration": 15.118458049886621,
+        "handler": "soun",
+        "codec": "mp4a",
+        "samples": 652,
+        "fps": 43.12609115616057
+      },
+      {
+        "timescale": 600,
+        "duration": 15.333333333333334,
+        "handler": "vide",
+        "codec": "hvc1",
+        "samples": 361,
+        "fps": 23.543478260869566
+      }
+    ],
+    "sha256": "372a03ec616c8df3212d8b76512f7106ec6afc713fc26ec5884496f2d67940f4"
+  },
+  {
+    "id": 4,
+    "file": "949918FF-B969-4E66-9C95-19D63B23755F.MOV",
+    "name": "风铃花语",
+    "closed": 0.042,
+    "open": 2.7,
+    "color": "#f1c4d1",
+    "original": "/videos/hd/originals/949918FF-B969-4E66-9C95-19D63B23755F.MOV",
+    "width": 1280,
+    "height": 720,
+    "duration": 8.063333,
+    "tracks": [
+      {
+        "timescale": 44100,
+        "duration": 8.110453514739229,
+        "handler": "soun",
+        "codec": "mp4a",
+        "samples": 350,
+        "fps": 43.15418359330222
+      },
+      {
+        "timescale": 600,
+        "duration": 8.333333333333334,
+        "handler": "vide",
+        "codec": "hvc1",
+        "samples": 193,
+        "fps": 23.16
+      }
+    ],
+    "sha256": "e51805b115b97cce0f0c82975abd10ca34902778da03a0acceaae970a01f00e9"
+  },
+  {
+    "id": 5,
+    "file": "EE134B7D-CFF8-4479-8133-9E53A5CF9CE1.MOV",
+    "name": "蓝夜微光",
+    "closed": 2.25,
+    "open": 0.042,
+    "color": "#5ea7ff",
+    "original": "/videos/hd/originals/EE134B7D-CFF8-4479-8133-9E53A5CF9CE1.MOV",
+    "width": 1280,
+    "height": 720,
+    "duration": 8.063333,
+    "tracks": [
+      {
+        "timescale": 44100,
+        "duration": 8.110453514739229,
+        "handler": "soun",
+        "codec": "mp4a",
+        "samples": 350,
+        "fps": 43.15418359330222
+      },
+      {
+        "timescale": 600,
+        "duration": 8.333333333333334,
+        "handler": "vide",
+        "codec": "hvc1",
+        "samples": 193,
+        "fps": 23.16
+      }
+    ],
+    "sha256": "f486b4fa6cd9ed167a479909b4019bd4018f604f4e3665c76712e82b17a8cbae"
+  }
+]

@@ -1,0 +1,5 @@
+import {chromium} from '@playwright/test';import {readFile,writeFile} from 'node:fs/promises';
+const specs=JSON.parse(await readFile('public/videos/manifest.json','utf8'));const browser=await chromium.launch({channel:'chrome',headless:true});
+try{const page=await browser.newPage();await page.goto('http://127.0.0.1:5180');for(const s of specs){const result=await page.evaluate(async s=>{
+ const c=document.createElement('canvas');c.width=1040;c.height=480;const ctx=c.getContext('2d');
+ for(let i=0;i<12;i++){const n=Math.round(i/11*(s.frames-1));const im=await createImageBitmap(await(await fetch(`${s.framePath}/${String(n).padStart(3,'0')}.jpg`)).blob());const x=i%4*260,y=Math.floor(i/4)*160;ctx.drawImage(im,s.id===4?0:1020,s.id===4?0:600,260,120,x,y,260,120);im.close();ctx.fillStyle='white';ctx.font='16px sans-serif';ctx.fillText(`Frame ${n}`,x+8,y+145);}return c.toDataURL('image/jpeg',.96).split(',')[1];},s);await writeFile(`test-results/watermarks/repaired-${s.id}.jpg`,Buffer.from(result,'base64'));}}finally{await browser.close();}
