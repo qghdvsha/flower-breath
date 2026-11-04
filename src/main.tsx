@@ -22,7 +22,10 @@ function App(){
   let active:BreathStage|ParticleStage;try{active=mode==='breath'?new BreathStage(canvas.current!):new ParticleStage(canvas.current!);stage.current=active;}catch{setError('无法启动图形渲染，请启用浏览器硬件加速。');return;}
   let frame=0,last=performance.now(),ui=0,overlayTime=0,demoTime=0,demoCycle=0;
   const onLost=(e:Event)=>{e.preventDefault();setError('图形设备已断开，请重新加载页面。');};canvas.current!.addEventListener('webglcontextlost',onLost);
-  const loop=(now:number)=>{const dt=Math.min(.06,(now-last)/1000);last=now;
+  const loop=(now:number)=>{
+   if(document.hidden){last=now;frame=requestAnimationFrame(loop);return;}
+   if(now-last<15){frame=requestAnimationFrame(loop);return;}
+   const dt=Math.min(.06,(now-last)/1000);last=now;
    if(mode==='breath'){
     if(demoRef.current){demoTime+=dt;control.current.target=(1-Math.cos(demoTime*.85))*.5;const cycle=Math.floor(demoTime/10);if(cycle>demoCycle&&control.current.phase==='idle'){demoCycle=cycle;control.current.next=(control.current.index+1)%control.current.flowerCount;control.current.phase='loading';}}
     control.current.step(dt,now);(active as BreathStage).render(control.current,dt);
@@ -31,12 +34,12 @@ function App(){
    if(now-ui>150){ui=now;
     const fresh=signal.current&&now-signal.current.time<350?signal.current:undefined;
     const right=fresh?.hands.find(h=>h.side==='Right');
-    setTracking((active instanceof BreathStage&&active.diagnostics.petals.error)?active.diagnostics.petals.error:(active instanceof BreathStage&&active.diagnostics.petals.playing)?'花瓣飘落 · 轻风摇曳':!runningRef.current?'摄像头已关闭':!fresh?.hands.length?'等待手部进入画面':!right?'左手已识别 · 右手展开≥90%可落瓣':mode==='breath'&&control.current.phase!=='idle'?'张掌已识别 · 正在换花':!right.folded&&(right.relaxedOpen??right.open)?'右手张掌 · 收指后可再换花':right.pair||(right.folded&&right.pinch<.44)?`右手双指 · 开合 ${Math.round(control.current.aperture*100)}%`:'右手已识别');
+    setTracking((active instanceof BreathStage&&active.diagnostics.bubbles.error)?active.diagnostics.bubbles.error:(active instanceof BreathStage&&active.diagnostics.bubbles.playing)?'原视频泡泡 · 动态播放':(active instanceof BreathStage&&active.diagnostics.petals.error)?active.diagnostics.petals.error:(active instanceof BreathStage&&active.diagnostics.petals.playing)?'花瓣飘落 · 轻风摇曳':!runningRef.current?'摄像头已关闭':!fresh?.hands.length?'等待手部进入画面':!right?(control.current.index===4?'左手张掌 · 播放动态泡泡视频':'左手已识别 · 右手展开≥90%可落瓣'):mode==='breath'&&control.current.phase!=='idle'?'张掌已识别 · 正在换花':!right.folded&&(right.relaxedOpen??right.open)?'右手张掌 · 收指后可再换花':right.pair||(right.folded&&right.pinch<.44)?`右手双指 · 开合 ${Math.round(control.current.aperture*100)}%`:'右手已识别');
     if(mode==='breath'){const s=active as BreathStage;setLoaded(v=>v||s.ready);if(s.error)setError(s.error);setStats(`${s.flowers[control.current.index]?.name??'载入'} · 开合 ${Math.round(control.current.aperture*100)}% · ${control.current.phase}\n${control.current.gestureHint}\n缓存 ${s.cache.diagnostics.decoded}/24 · 推理 ${camera.current.inferenceFrames} 帧`);}
     else{setLoaded(true);setStats(`${life.current.kind??'等待手势'} · ${life.current.phase}`);}
    }frame=requestAnimationFrame(loop);
   };frame=requestAnimationFrame(loop);
-  if(import.meta.env.DEV&&location.search.includes('testHarness')){const engine=new GestureEngine();window.__flowerTest={feed:h=>accept(engine.update(h.map(v=>classify(v.points,v.side)),performance.now(),modeRef.current==='legacy'?life.current.context:{kind:null,side:null,locked:false})),reset:()=>{reset();engine.reset();},state:()=>({mode:modeRef.current,index:control.current.index,next:control.current.next,aperture:control.current.aperture,phase:control.current.phase,progress:control.current.progress,switches:control.current.switches,petalBursts:control.current.petalBursts,legacy:life.current.kind,cameraFrames:camera.current.inferenceFrames,resources:active.diagnostics})};}
+  if(import.meta.env.DEV&&location.search.includes('testHarness')){const engine=new GestureEngine();window.__flowerTest={feed:h=>accept(engine.update(h.map(v=>classify(v.points,v.side)),performance.now(),modeRef.current==='legacy'?life.current.context:{kind:null,side:null,locked:false})),reset:()=>{reset();engine.reset();},state:()=>({mode:modeRef.current,index:control.current.index,next:control.current.next,aperture:control.current.aperture,phase:control.current.phase,progress:control.current.progress,switches:control.current.switches,petalBursts:control.current.petalBursts,bubbleBursts:control.current.bubbleBursts,legacy:life.current.kind,cameraFrames:camera.current.inferenceFrames,resources:active.diagnostics})};}
   return()=>{cancelAnimationFrame(frame);canvas.current?.removeEventListener('webglcontextlost',onLost);active.dispose();delete window.__flowerTest;};
  },[mode]);
  useEffect(()=>()=>camera.current.stop(),[]);
@@ -58,7 +61,7 @@ function App(){
    <label>交换左右手标签<input type="checkbox" disabled={running||busy} checked={swap} onChange={e=>setSwap(e.target.checked)}/></label>
    {mode==='breath'&&<label>自动演示（无需摄像头）<input type="checkbox" checked={demo} onChange={e=>toggleDemo(e.target.checked)}/></label>}
    {debug&&<output>{stats}</output>}
-   <details><summary>操作说明</summary>{mode==='breath'?<><p>仅用右手：收起后三指，拇指与食指捏合、分开，控制花瓣。</p><p>右手五指张开，按顺序换到下一朵；无需滑动。持续张开只换一次，收回双指姿态后再张开即可继续换花。</p><p>第1、3朵花：右手双指展开≥90%，同时左手五指张开，播放一段落瓣与轻摇。左手收拢后再张开可再次触发。</p></>:<p>左食指引导蝴蝶；左手展开、抬升使树生长；右手双指控制原图花朵。</p>}<p className="muted">视频素材为 AI 生成。摄像头仅在本机处理。</p></details>
+   <details><summary>操作说明</summary>{mode==='breath'?<><p>仅用右手：收起后三指，拇指与食指捏合、分开，控制花瓣。</p><p>右手五指张开，按顺序换到下一朵；无需滑动。持续张开只换一次，收回双指姿态后再张开即可继续换花。</p><p>第1、3朵花：右手双指展开≥90%，同时左手五指张开，播放一段落瓣与轻摇。左手收拢后再张开可再次触发，完整播放约6秒。</p><p>第5朵浮光百合：左手五指张开，播放你提供的完整动态泡泡视频（约6秒）；左手收拢或视频结束后，回到右手当前的开合位置；视频播放期间，花和泡泡随原视频运动。</p></>:<p>左食指引导蝴蝶；左手展开、抬升使树生长；右手双指控制原图花朵。</p>}<p className="muted">视频素材为 AI 生成。摄像头仅在本机处理。</p></details>
   </section>
   {error&&<aside role="alert" className="error"><p>{error}</p><button onClick={()=>{setError('');if(stage.current instanceof BreathStage)stage.current.retry();}}>重试素材</button><button onClick={start} disabled={busy}>重连摄像头</button><button onClick={()=>setError('')}>关闭</button></aside>}
  </main>;

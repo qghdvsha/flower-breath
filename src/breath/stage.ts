@@ -1,3 +1,4 @@
+import {Bubbles} from './bubbles';
 import {PetalVideo} from './petal-video';
 import {BufferAttribute,BufferGeometry,Texture,Color,Mesh,OrthographicCamera,PlaneGeometry,Points,Scene,ShaderMaterial,SRGBColorSpace,Vector2,WebGLRenderer,AdditiveBlending} from 'three';
 import {FrameCache,type Flower} from './cache';import {BreathControl} from './control';
@@ -13,33 +14,35 @@ class Layer {
   const distant=pair.high-pair.low>2;
   const nearest=value-pair.low<=pair.high-value?pair.lower:pair.upper;
   const images=distant?[nearest,nearest]:[pair.lower,pair.upper];
+  // Reuse the previous adjacent frame's GPU texture in either direction.
+  if(this.images[1]===images[0]||this.images[0]===images[1]){this.textures.reverse();this.images.reverse();}
   // Upload only when decoded source frames change; fractional motion is a shader uniform.
-  for(let i=0;i<2;i++)if(this.images[i]!==images[i]){this.images[i]=images[i];this.textures[i].image=images[i];this.textures[i].needsUpdate=true;this.uploads++;}
+  for(let i=0;i<2;i++)if(this.images[i]!==images[i]){const old=this.textures[i].image as ImageBitmap|undefined;if(old&&(old.width!==images[i].width||old.height!==images[i].height))this.textures[i].dispose();this.images[i]=images[i];this.textures[i].image=images[i];this.textures[i].needsUpdate=true;this.uploads++;}
   this.blend=distant||pair.high===pair.low?0:Math.max(0,Math.min(1,(value-pair.low)/(pair.high-pair.low)));
   this.frame=pair.low;return !!cache.get(f,a)&&!!cache.get(f,b);
  }
  dispose(){this.textures.forEach(t=>t.dispose());this.images=[];}
 }
 export class BreathStage {
- private petals=new PetalVideo();private renderer:WebGLRenderer;private scene=new Scene();private camera=new OrthographicCamera(-1,1,1,-1,0,2);
+ private petals=new PetalVideo();private bubbles=new Bubbles();private renderer:WebGLRenderer;private scene=new Scene();private camera=new OrthographicCamera(-1,1,1,-1,0,2);
  private layers=[new Layer(),new Layer()];readonly cache=new FrameCache();private mesh:Mesh<PlaneGeometry,ShaderMaterial>;private particles:Points<BufferGeometry,ShaderMaterial>;
  flowers:Flower[]=[];error='';ready=false;private disposed=false;private width=0;private height=0;private time=0;private currentId=-1;private pendingSince=0;private fpsAverage=1/60;private samples=0;reduced=false;
  constructor(canvas:HTMLCanvasElement){
-  this.renderer=new WebGLRenderer({canvas,antialias:false,alpha:false,powerPreference:'high-performance'});this.renderer.setPixelRatio(Math.min(devicePixelRatio,1.5));
-  this.mesh=new Mesh(new PlaneGeometry(2,2),new ShaderMaterial({depthWrite:false,uniforms:{uA:{value:this.layers[0].textures[0]},uA2:{value:this.layers[0].textures[1]},uB:{value:this.layers[1].textures[0]},uB2:{value:this.layers[1].textures[1]},uPetals:{value:this.petals.texture},uPetalMix:{value:0},uMixA:{value:0},uMixB:{value:0},uAspect:{value:1},uProgress:{value:0},uTime:{value:0},uTexel:{value:new Vector2(1/1280,1/720)},uDetail:{value:.55}},
+  this.renderer=new WebGLRenderer({canvas,antialias:false,alpha:false,powerPreference:'high-performance'});this.renderer.setPixelRatio(Math.min(devicePixelRatio,1));
+  this.mesh=new Mesh(new PlaneGeometry(2,2),new ShaderMaterial({depthWrite:false,uniforms:{uA:{value:this.layers[0].textures[0]},uA2:{value:this.layers[0].textures[1]},uB:{value:this.layers[1].textures[0]},uB2:{value:this.layers[1].textures[1]},uFaithfulA:{value:0},uFaithfulB:{value:0},uBubbleMix:{value:0},uBubbleVideo:{value:this.bubbles.texture},uPetals:{value:this.petals.texture},uPetalMix:{value:0},uMixA:{value:0},uMixB:{value:0},uAspect:{value:1},uProgress:{value:0},uTime:{value:0},uTexel:{value:new Vector2(1/1280,1/720)},uDetail:{value:0}},
    vertexShader:'varying vec2 vUv;void main(){vUv=uv;gl_Position=vec4(position.xy,0.,1.);}',
-   fragmentShader:`varying vec2 vUv;uniform sampler2D uA,uA2,uB,uB2,uPetals;uniform float uPetalMix;uniform float uMixA,uMixB;uniform float uAspect,uProgress,uTime,uDetail;uniform vec2 uTexel;${noise}
+   fragmentShader:`varying vec2 vUv;uniform sampler2D uA,uA2,uB,uB2,uPetals,uBubbleVideo;uniform float uFaithfulA,uFaithfulB,uBubbleMix;uniform float uPetalMix;uniform float uMixA,uMixB;uniform float uAspect,uProgress,uTime,uDetail;uniform vec2 uTexel;${noise}
    vec3 decodeVideo(vec3 c){return mix(c/12.92,pow((c+.055)/1.055,vec3(2.4)),step(vec3(.04045),c));}
-   vec3 samplePair(sampler2D tex,sampler2D other,float blend,vec2 uv,bool video){
+   vec3 samplePair(sampler2D tex,sampler2D other,float blend,vec2 uv,bool video,float faithful){
     vec3 c=mix(texture2D(tex,uv).rgb,texture2D(other,uv).rgb,blend);return video?decodeVideo(c):c;
    }
-   vec3 enhance(sampler2D tex,sampler2D other,float blend,vec2 uv,bool video){
-    vec3 c=samplePair(tex,other,blend,uv,video);
+   vec3 enhance(sampler2D tex,sampler2D other,float blend,vec2 uv,bool video,float faithful){
+    vec3 c=samplePair(tex,other,blend,uv,video,faithful);if(faithful>.5)return c;
     if(uDetail>0.){
-     vec3 n=samplePair(tex,other,blend,clamp(uv+vec2(0.,uTexel.y),vec2(0.),vec2(1.)),video);
-     vec3 s=samplePair(tex,other,blend,clamp(uv-vec2(0.,uTexel.y),vec2(0.),vec2(1.)),video);
-     vec3 e=samplePair(tex,other,blend,clamp(uv+vec2(uTexel.x,0.),vec2(0.),vec2(1.)),video);
-     vec3 w=samplePair(tex,other,blend,clamp(uv-vec2(uTexel.x,0.),vec2(0.),vec2(1.)),video);
+     vec3 n=samplePair(tex,other,blend,clamp(uv+vec2(0.,uTexel.y),vec2(0.),vec2(1.)),video,faithful);
+     vec3 s=samplePair(tex,other,blend,clamp(uv-vec2(0.,uTexel.y),vec2(0.),vec2(1.)),video,faithful);
+     vec3 e=samplePair(tex,other,blend,clamp(uv+vec2(uTexel.x,0.),vec2(0.),vec2(1.)),video,faithful);
+     vec3 w=samplePair(tex,other,blend,clamp(uv-vec2(uTexel.x,0.),vec2(0.),vec2(1.)),video,faithful);
      float edge=dot(c-(n+s+e+w)*.25,vec3(.2126,.7152,.0722));
      // Luminance-only detail, noise gate and local bounds avoid colored/white halos.
      float detail=clamp(edge*uDetail*smoothstep(.001,.012,abs(edge)),-.025,.025);
@@ -48,13 +51,14 @@ export class BreathStage {
     // Linear-light midtone lift with a white-preserving shoulder; black stays black.
     return c*1.34/(vec3(1.)+c*.34);
    }
-   vec3 picture(sampler2D tex,sampler2D other,float blend,vec2 uv,bool video){float ratio=1.7777778;vec2 q=uv;if(uAspect>ratio)q.x=(q.x-.5)*uAspect/ratio+.5;else q.y=(q.y-.5)*ratio/uAspect+.5;
+   vec3 picture(sampler2D tex,sampler2D other,float blend,vec2 uv,bool video,float faithful){float ratio=1.7777778;vec2 q=uv;if(uAspect>ratio)q.x=(q.x-.5)*uAspect/ratio+.5;else q.y=(q.y-.5)*ratio/uAspect+.5;
     float outside=max(max(-q.x,q.x-1.),max(-q.y,q.y-1.));
     vec2 bg=uv*.85+.075;bg.y=1.-bg.y;vec3 ext=mix(texture2D(tex,bg,6.).rgb,texture2D(other,bg,6.).rgb,blend);
-    if(video)ext=decodeVideo(ext);ext*=.42*exp(-max(outside,0.)*.9);q.y=1.-q.y;vec2 imageUV=clamp(q,vec2(0.),vec2(1.));vec3 c=enhance(tex,other,blend,imageUV,video);return mix(c,ext,smoothstep(-.06,.03,outside));}
+    if(video)ext=decodeVideo(ext);ext*=.42*exp(-max(outside,0.)*.9);q.y=1.-q.y;vec2 imageUV=clamp(q,vec2(0.),vec2(1.));vec3 c=enhance(tex,other,blend,imageUV,video,faithful);
+if(faithful>.5)return outside<=0.?c:ext;return mix(c,ext,smoothstep(-.06,.03,outside));}
    void main(){vec2 p=vUv-.5;float dist=length(p*vec2(1.,.85));float grain=noise(vUv*9.)*.11+noise(vUv*24.)*.025;
     float threshold=uProgress*.95-.14;float incoming=1.-smoothstep(threshold-.035,threshold+.035,dist+grain);if(uProgress<=0.)incoming=0.;if(uProgress>=1.)incoming=1.;
-    vec3 c=picture(uA,uA2,uMixA,vUv,false);if(incoming>0.)c=mix(c,picture(uB,uB2,uMixB,vUv,false),incoming);if(uPetalMix>0.)c=mix(c,picture(uPetals,uPetals,0.,vUv,true),uPetalMix);gl_FragColor=vec4(c,1.);
+    vec3 c=picture(uA,uA2,uMixA,vUv,false,uFaithfulA);if(incoming>0.)c=mix(c,picture(uB,uB2,uMixB,vUv,false,uFaithfulB),incoming);if(uPetalMix>0.)c=mix(c,picture(uPetals,uPetals,0.,vUv,true,0.),uPetalMix);if(uBubbleMix>0.)c=mix(c,picture(uBubbleVideo,uBubbleVideo,0.,vUv,true,1.),uBubbleMix);gl_FragColor=vec4(c,1.);
     #include <colorspace_fragment>
    }`,
   }));this.scene.add(this.mesh);
@@ -79,7 +83,10 @@ export class BreathStage {
    control.flowerCount=this.flowers.length;const current=this.flowers[control.index],next=this.flowers[control.phase==='idle'?(control.index+1)%this.flowers.length:control.next];
    const requests:{flower:Flower;frame:number}[]=[];
    const currentFrame=Math.floor(control.aperture*(current.frames-1));
-   for(const offset of [0,1,-1,2,-2,3,-3,4,-4,5,-5,6,-6,7])requests.push({flower:current,frame:Math.max(0,Math.min(current.frames-1,currentFrame+offset))});
+   for(const offset of [0,1,-1,2,-2,3])requests.push({flower:current,frame:Math.max(0,Math.min(current.frames-1,currentFrame+offset))});
+   // Decode the latest finger destination before distant speculative neighbours.
+   const targetFrame=Math.floor(control.target*(current.frames-1));
+   requests.splice(2,0,{flower:current,frame:targetFrame},{flower:current,frame:Math.min(targetFrame+1,current.frames-1)});
    // While idle, keep a small fixed preview of the next flower instead of decoding it on every pinch.
    const upcoming=control.phase==='idle'?.65:control.aperture;
    const nextFrame=Math.floor(upcoming*(next.frames-1));
@@ -90,15 +97,15 @@ export class BreathStage {
    if(control.phase==='loading'){if(!this.pendingSince)this.pendingSince=this.time;if(nextReady){control.beginTransition();this.pendingSince=0;}else if(this.time-this.pendingSince>8){this.error='下一段素材加载超时，请重试';control.failTransition();this.pendingSince=0;}}
    else this.pendingSince=0;
    if(this.cache.error)this.error=this.cache.error;
-   const uniforms=this.mesh.material.uniforms;uniforms.uTexel.value.set(1/current.width,1/current.height);
+   const uniforms=this.mesh.material.uniforms;uniforms.uTexel.value.set(1/current.width,1/current.height);uniforms.uFaithfulA.value=current.id===5?1:0;uniforms.uFaithfulB.value=next.id===5?1:0;
    uniforms.uA.value=this.layers[0].textures[0];uniforms.uA2.value=this.layers[0].textures[1];uniforms.uMixA.value=this.layers[0].blend;
    uniforms.uB.value=this.layers[1].textures[0];uniforms.uB2.value=this.layers[1].textures[1];uniforms.uMixB.value=this.layers[1].blend;
    this.mesh.material.uniforms.uProgress.value=control.phase==='transition'?control.progress:0;
    const u=this.particles.material.uniforms;u.uTime.value=this.time;u.uProgress.value=control.progress;u.uActive.value=control.phase==='transition'?1:0;u.uDpr.value=this.renderer.getPixelRatio();u.uAspect.value=this.width/this.height;u.uColor.value.set(current.color);if(control.phase==='transition')u.uColor.value.lerp(new Color(next.color),control.progress);
   }
-  this.petals.update(control,dt);this.mesh.material.uniforms.uPetalMix.value=this.petals.mix;this.renderer.render(this.scene,this.camera);
+  this.bubbles.update(control,dt);this.mesh.material.uniforms.uBubbleMix.value=this.bubbles.mix;this.petals.update(control,dt);this.mesh.material.uniforms.uPetalMix.value=this.petals.mix;this.renderer.render(this.scene,this.camera);
  }
- get diagnostics(){return {petals:this.petals.diagnostics,ready:this.ready,...this.cache.diagnostics,textures:this.renderer.info.memory.textures,geometries:this.renderer.info.memory.geometries,frame:this.layers[0].frame,textureUploads:this.layers.reduce((n,l)=>n+l.uploads,0),interpolation:"GPU",detailEnhancement:this.mesh.material.uniforms.uDetail.value>0,error:this.error,reduced:this.reduced};}
+ get diagnostics(){return {bubbles:this.bubbles.diagnostics,petals:this.petals.diagnostics,ready:this.ready,...this.cache.diagnostics,textures:this.renderer.info.memory.textures,geometries:this.renderer.info.memory.geometries,frame:this.layers[0].frame,textureUploads:this.layers.reduce((n,l)=>n+l.uploads,0),interpolation:"GPU",detailEnhancement:this.mesh.material.uniforms.uDetail.value>0,error:this.error,reduced:this.reduced};}
  retry(){this.error='';this.cache.clearError();this.pendingSince=0;if(this.flowers.length===0)void this.loadManifest();}
- dispose(){this.disposed=true;this.petals.dispose();this.cache.dispose();this.layers.forEach(l=>l.dispose());this.mesh.geometry.dispose();this.mesh.material.dispose();this.particles.geometry.dispose();this.particles.material.dispose();this.renderer.dispose();}
+ dispose(){this.disposed=true;this.bubbles.dispose();this.petals.dispose();this.cache.dispose();this.layers.forEach(l=>l.dispose());this.mesh.geometry.dispose();this.mesh.material.dispose();this.particles.geometry.dispose();this.particles.material.dispose();this.renderer.dispose();}
 }

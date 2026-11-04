@@ -35,7 +35,8 @@ export class Camera {
    const loop=(t:number)=>{
     if(generation!==this.generation)return;
     // One transferable frame at a time. Skip obsolete frames instead of accumulating latency.
-    if(!this.inFlight&&t-this.last>=33&&video.readyState>=2&&video.currentTime!==this.videoTime){
+    const interval=33;
+    if(!document.hidden&&!this.inFlight&&t-this.last>=interval&&video.readyState>=2&&video.currentTime!==this.videoTime){
      this.last=t;this.videoTime=video.currentTime;this.inFlight=true;
      createImageBitmap(video).then(bitmap=>{if(generation!==this.generation){bitmap.close();return;}worker.postMessage({type:'frame',bitmap,time:t},[bitmap]);}).catch(e=>fail(`摄像头取帧失败：${e.message}`));
     }this.frame=requestAnimationFrame(loop);

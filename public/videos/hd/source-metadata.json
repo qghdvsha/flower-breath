@@ -125,33 +125,29 @@
   },
   {
     "id": 5,
-    "file": "EE134B7D-CFF8-4479-8133-9E53A5CF9CE1.MOV",
-    "name": "蓝夜微光",
-    "closed": 2.25,
-    "open": 0.042,
-    "color": "#5ea7ff",
-    "original": "/videos/hd/originals/EE134B7D-CFF8-4479-8133-9E53A5CF9CE1.MOV",
+    "file": "lily-final-a.mp4",
+    "original": "/videos/hd/originals/lily-final-a.mp4",
     "width": 1280,
     "height": 720,
-    "duration": 8.063333,
+    "duration": 6.08,
     "tracks": [
       {
         "timescale": 44100,
-        "duration": 8.110453514739229,
+        "duration": 6.126439909297052,
         "handler": "soun",
         "codec": "mp4a",
-        "samples": 350,
-        "fps": 43.15418359330222
+        "samples": 264,
+        "fps": 43.09191045836788
       },
       {
-        "timescale": 600,
-        "duration": 8.333333333333334,
+        "timescale": 90000,
+        "duration": 6.041666666666667,
         "handler": "vide",
         "codec": "hvc1",
-        "samples": 193,
-        "fps": 23.16
+        "samples": 145,
+        "fps": 24
       }
     ],
-    "sha256": "f486b4fa6cd9ed167a479909b4019bd4018f604f4e3665c76712e82b17a8cbae"
+    "sha256": "47d268e901591cdbcbdd33c4165e1617637af0f2393cac69cffd7692c4a4360d"
   }
 ]

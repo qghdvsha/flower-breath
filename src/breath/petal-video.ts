@@ -24,7 +24,7 @@ export class PetalVideo {
    void this.video.play().then(()=>{if(this.disposed||generation!==this.generation){return;}this.starting=false;this.playing=true;}).catch(()=>{if(generation===this.generation){this.starting=false;this.error='飘落播放未启动，请刷新后重试';this.playing=false;}});
   }
   if(this.pending&&this.clock>this.deadline){this.pending=false;this.error='飘落素材加载超时，请刷新后重试';}
-  const end=this.current===2?2.8:3.1;
+  const end=Number.isFinite(this.video.duration)?this.video.duration:6.08;
   if(this.video.currentTime>=end||this.video.ended)this.playing=false;
   const target=this.playing&&this.video.readyState>=2?Math.min(1,Math.max(0,(end-this.video.currentTime)/.4)):0;
   this.mix+=Math.max(-dt/.28,Math.min(dt/.28,target-this.mix));

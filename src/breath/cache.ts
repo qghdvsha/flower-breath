@@ -1,4 +1,4 @@
-export type Flower={id:number;name:string;frames:number;width:number;height:number;closed:number;open:number;color:string;framePath?:string};
+export type Flower={id:number;name:string;frames:number;width:number;height:number;closed:number;open:number;color:string;packedBubbles?:boolean;frameExtension?:string;framePath?:string};
 type Entry={image:ImageBitmap;used:number};
 export class FrameCache {
  private entries=new Map<string,Entry>();private tasks=new Map<string,{flower:Flower;frame:number;abort:AbortController}>();
@@ -18,9 +18,10 @@ export class FrameCache {
  request(requests:{flower:Flower;frame:number}[]){
   this.wanted=requests.filter((r,i,a)=>a.findIndex(v=>v.flower.id===r.flower.id&&v.frame===r.frame)===i);
   this.protected=new Set(this.wanted.slice(0,4).map(r=>this.key(r.flower,r.frame)));
-  // New gesture positions supersede pending fetches; never build a long seek/decode queue.
-  const keys=new Set(this.wanted.map(r=>this.key(r.flower,r.frame)));
-  for(const [k,task]of this.tasks)if(!keys.has(k))task.abort.abort();
+  // Finish the at-most-three active decodes for this scene: cancelling them on
+  // every render can starve fast gestures. Only queued work follows the latest input.
+  const ids=new Set(this.wanted.map(r=>r.flower.id));
+  for(const task of this.tasks.values())if(!ids.has(task.flower.id))task.abort.abort();
   this.pump();
  }
  private pump(){if(this.disposed)return;for(const r of this.wanted){if(this.tasks.size>=3)break;const key=this.key(r.flower,r.frame);if(this.entries.has(key)||this.tasks.has(key))continue;
@@ -28,7 +29,7 @@ export class FrameCache {
   }}
  private async load(key:string,r:{flower:Flower;frame:number},abort:AbortController){
   try{
-   const res=await fetch(`${r.flower.framePath??`/videos/frames/${r.flower.id}`}/${String(r.frame).padStart(3,'0')}.jpg`,{signal:abort.signal});if(!res.ok)throw new Error(`帧读取失败 (${res.status})`);
+   const res=await fetch(`${r.flower.framePath??`/videos/frames/${r.flower.id}`}/${String(r.frame).padStart(3,'0')}.${r.flower.frameExtension??'jpg'}`,{signal:abort.signal});if(!res.ok)throw new Error(`帧读取失败 (${res.status})`);
    const image=await createImageBitmap(await res.blob());if(this.disposed||abort.signal.aborted){image.close();return;}
    while(this.entries.size>=this.capacity){let oldestKey='',age=Infinity;for(const [k,e]of this.entries)if(!this.protected.has(k)&&e.used<age){age=e.used;oldestKey=k;}if(!oldestKey){image.close();return;}this.entries.get(oldestKey)!.image.close();this.entries.delete(oldestKey);this.evictions++;}
    this.entries.set(key,{image,used:++this.tick});this.loads++;this.peak=Math.max(this.peak,this.entries.size);

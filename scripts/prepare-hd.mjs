@@ -6,7 +6,7 @@ const metadata=JSON.parse(await readFile('test-results/hd-inspection/metadata.js
 const manifest=[];
 const browser=await chromium.launch({channel:'chrome',headless:true});
 try{const page=await browser.newPage();await page.goto('http://127.0.0.1:5180');await page.evaluate('window.repairWatermark = '+repairWatermark.toString());
-for(const source of sources){
+for(const source of sources.filter(s=>s.id!==5)){
  const meta=metadata.find(m=>m.id===source.id),framePath=`/videos/hd/frames-v3/${source.id}`;
  await mkdir('public'+framePath,{recursive:true});
  await page.evaluate(async src=>{
@@ -37,5 +37,7 @@ for(const source of sources){
 await writeFile('public/videos/hd/manifest.json',JSON.stringify(manifest,null,2));
 await copyFile('test-results/hd-inspection/metadata.json','public/videos/hd/source-metadata.json');
 await copyFile('public/videos/hd/manifest.json','public/videos/manifest.json');
-console.log('All five assets prepared; live manifest updated.');
+console.log('First four assets prepared.');
 }finally{await browser.close();}
+
+await import('./prepare-bubbles.mjs');

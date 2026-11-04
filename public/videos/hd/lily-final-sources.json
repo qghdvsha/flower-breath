@@ -1,0 +1,56 @@
+[
+  {
+    "id": "a",
+    "file": "lily-final-a.mp4",
+    "original": "/videos/hd/originals/lily-final-a.mp4",
+    "width": 1280,
+    "height": 720,
+    "duration": 6.08,
+    "tracks": [
+      {
+        "timescale": 44100,
+        "duration": 6.126439909297052,
+        "handler": "soun",
+        "codec": "mp4a",
+        "samples": 264,
+        "fps": 43.09191045836788
+      },
+      {
+        "timescale": 90000,
+        "duration": 6.041666666666667,
+        "handler": "vide",
+        "codec": "hvc1",
+        "samples": 145,
+        "fps": 24
+      }
+    ],
+    "sha256": "47d268e901591cdbcbdd33c4165e1617637af0f2393cac69cffd7692c4a4360d"
+  },
+  {
+    "id": "b",
+    "file": "lily-final-b.mp4",
+    "original": "/videos/hd/originals/lily-final-b.mp4",
+    "width": 1280,
+    "height": 720,
+    "duration": 6.08,
+    "tracks": [
+      {
+        "timescale": 44100,
+        "duration": 6.126439909297052,
+        "handler": "soun",
+        "codec": "mp4a",
+        "samples": 264,
+        "fps": 43.09191045836788
+      },
+      {
+        "timescale": 90000,
+        "duration": 6.041666666666667,
+        "handler": "vide",
+        "codec": "hvc1",
+        "samples": 145,
+        "fps": 24
+      }
+    ],
+    "sha256": "197aa0ff92d84fc2fd655669f106456ec6667e57f1b8ec4a51992ad8a645b49b"
+  }
+]

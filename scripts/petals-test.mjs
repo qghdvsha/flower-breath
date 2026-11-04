@@ -8,7 +8,7 @@ try{await page.goto('http://127.0.0.1:5180/?testHarness=1');await page.waitForFu
   await feed([pair(),{side:'Left',points:landmarks('fist','Left')}]);await page.waitForTimeout(500);await feed([pair(),left]);
   await page.waitForFunction(()=>window.__flowerTest.state().resources.petals.mix>.95,null,{timeout:15000});
   await page.screenshot({path:`test-results/petals/play-${id}.png`});
-  await page.waitForTimeout(3800);let s=await page.evaluate(()=>window.__flowerTest.state());assert.equal(s.resources.petals.playing,false);assert.ok(s.resources.petals.mix<.01);assert.equal(s.resources.petals.error,'');
+  await page.waitForTimeout(4000);assert.equal((await page.evaluate(()=>window.__flowerTest.state())).resources.petals.playing,true);await page.waitForTimeout(2500);let s=await page.evaluate(()=>window.__flowerTest.state());assert.equal(s.resources.petals.playing,false);assert.ok(s.resources.petals.mix<.01);assert.equal(s.resources.petals.error,'');
   const bursts=s.petalBursts;await page.waitForTimeout(300);assert.equal((await page.evaluate(()=>window.__flowerTest.state())).petalBursts,bursts);
   await feed([pair(),{side:'Left',points:landmarks('fist','Left')}]);await page.waitForTimeout(250);await feed([pair(),left]);await page.waitForFunction(()=>window.__flowerTest.state().resources.petals.mix>.8);
   await feed([pair(0)]);await page.waitForTimeout(700);assert.ok((await page.evaluate(()=>window.__flowerTest.state())).resources.petals.mix<.01);

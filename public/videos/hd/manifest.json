@@ -97,26 +97,20 @@
   },
   {
     "id": 5,
-    "file": "EE134B7D-CFF8-4479-8133-9E53A5CF9CE1.MOV",
-    "name": "蓝夜微光",
-    "closed": 2.25,
-    "open": 0.042,
-    "color": "#5ea7ff",
-    "original": "/videos/hd/originals/EE134B7D-CFF8-4479-8133-9E53A5CF9CE1.MOV",
-    "framePath": "/videos/hd/frames-v3/5",
-    "frames": 54,
+    "file": "lily-final-a.mp4",
+    "name": "浮光百合",
+    "closed": 0.04,
+    "open": 4.79,
+    "color": "#efc5dc",
+    "original": "/videos/hd/originals/lily-final-a.mp4",
+    "framePath": "/videos/hd/frames-user-final/5",
+    "frameExtension": "png",
+    "frames": 115,
     "width": 1280,
     "height": 720,
-    "duration": 8.063333,
+    "duration": 6.08,
     "fps": 24,
-    "watermarkRepair": {
-      "method": "same-frame spatial background reconstruction; no static donor",
-      "region": [
-        1020,
-        610,
-        1280,
-        718
-      ]
-    }
+    "effectVideo": "/videos/hd/originals/lily-final-b.mp4",
+    "processing": "User supplied clean video, complete unmodified PNG frames; separate original dynamic bubble video."
   }
 ]
